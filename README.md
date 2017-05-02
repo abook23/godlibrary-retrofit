@@ -35,13 +35,16 @@ FileService.init(getApplicationContext(), "http://172.16.0.200:8080");//文件�
 ```
 
 ## 网络请求
+完整实例 在后面
 ```java
 ApiService.create(UserApi.class).userInfo()
-                .compose(RxJavaUtils.<Response<UserInfo>>defaultSchedulers())// 等于 .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                .compose(RxJavaUtils.<Response<UserInfo>>defaultSchedulers())
+                // 等于 .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new WebObserver<Response<UserInfo>>() {
                     @Override
                     protected void onSuccess(Response<UserInfo> userInfoResponse) {
-                        Toast.makeText(getApplicationContext(), "请求成功" + userInfoResponse.getState(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "请求成功" + userInfoResponse.getState(),
+                         Toast.LENGTH_SHORT).show();
                     }
                 });
 ```
