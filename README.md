@@ -23,7 +23,7 @@ dependencies {
 
 ## 引用
 ```java
-compile 'com.abook23:godlibrary-retrofit:1.0.1'
+compile 'com.abook23:godlibrary-retrofit:1.1.0'
 ```
 
 ## 初始化
