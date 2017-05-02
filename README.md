@@ -6,19 +6,6 @@ godlibrary-retrofit
 # 简介
 1. 基于 retrofit2 的网络请求封装 经过项目 实战 验证。
 
-# dependencies
-
-```html
-dependencies {
-    compile 'com.android.support:appcompat-v7:24.2.1'
-    compile 'io.reactivex:rxjava:1.2.2'
-    compile 'io.reactivex:rxandroid:1.2.1'
-    compile 'com.squareup.retrofit2:retrofit:2.1.0'
-    compile 'com.squareup.retrofit2:adapter-rxjava:2.1.0'
-    compile 'com.squareup.retrofit2:converter-gson:2.1.0'
-}
-```
-
 # 使用方法
 
 ## 引用
@@ -289,6 +276,20 @@ public class LoginActivity extends Activity {
 }
 
 ```
+
+# 项目中的 dependencies
+
+```java
+dependencies {
+    compile 'com.android.support:appcompat-v7:24.2.1'
+    compile 'io.reactivex:rxjava:1.2.2'
+    compile 'io.reactivex:rxandroid:1.2.1'
+    compile 'com.squareup.retrofit2:retrofit:2.1.0'
+    compile 'com.squareup.retrofit2:adapter-rxjava:2.1.0'
+    compile 'com.squareup.retrofit2:converter-gson:2.1.0'
+}
+```
+
 License
 -------
 
