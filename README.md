@@ -34,12 +34,24 @@ ApiService.init(getApplicationContext(), "http://172.16.0.22:8099");//
 FileService.init(getApplicationContext(), "http://172.16.0.200:8080");//文件下载上传 比如 文件服务器 和项目部在同一服务器
 ```
 
-## 上传文件
+## 网络请求
+```java
+ApiService.create(UserApi.class).userInfo()
+                .compose(RxJavaUtils.<Response<UserInfo>>defaultSchedulers())// 等于 .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new WebObserver<Response<UserInfo>>() {
+                    @Override
+                    protected void onSuccess(Response<UserInfo> userInfoResponse) {
+                        Toast.makeText(getApplicationContext(), "请求成功" + userInfoResponse.getState(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+```
+
+## 上传文件（支持多文件上传）
 ```java
         //需要在 application 中初始化 FileService
         //FileService.init(getApplicationContext(),String baseUrl);
         String path = FileUtils.getDowloadDir(getApplication()) + "/jdk-8u101-windows-x64.exe";
-        MultipartBody multipartBody = MultipartUtils.filesToMultipartBody(new File(path));
+        MultipartBody multipartBody = MultipartUtils.filesToMultipartBody(new File(path));//
         FileService.getInit().create(FileApi.class, new OnUpLoadingListener() {
             @Override
             public void onProgress(long bytesRead, long contentLength, boolean done) {
@@ -57,7 +69,7 @@ FileService.init(getApplicationContext(), "http://172.16.0.200:8080");//文件�
                 });
 ```
 
-## 文件下载
+## 文件下载（支持大文件下载）
 ```java
 
         String url = "uploadFiles/apk/jdk-8u101-windows-x64.exe";
@@ -84,9 +96,9 @@ FileService.init(getApplicationContext(), "http://172.16.0.200:8080");//文件�
                 });
 ```
 
-# 可以暂停 取消
+# 可以 暂停 取消
 
-##文件上传
+## 文件上传
 ```java
     private void uploadFileJD() {
         String url = "groupline/fileUpload/uploadFiles";
