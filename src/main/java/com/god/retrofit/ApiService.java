@@ -9,11 +9,14 @@ import com.god.retrofit.initerceptor.LoggingInterceptor;
 import com.god.retrofit.util.AppUtils;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLSocketFactory;
 
 import okhttp3.Cache;
+import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
@@ -31,7 +34,8 @@ public class ApiService {
 
     public static boolean DEBUG = true;
     public static boolean CACHE = false;
-    public static LoggingInterceptor.LogModel logModel = LoggingInterceptor.LogModel.concise;
+    public static LoggingInterceptor.LogModel logModel = LoggingInterceptor.LogModel.CONCISE;
+    private List<Interceptor> mInterceptors = new ArrayList<>();
 
     private String baseUrl;
     private Retrofit mRetrofit;
@@ -69,6 +73,12 @@ public class ApiService {
         return mRetrofit;
     }
 
+    public void addInterceptor(Interceptor... interceptors) {
+        for (Interceptor interceptor : interceptors) {
+            mInterceptors.add(interceptor);
+        }
+    }
+
     public OkHttpClient.Builder getBuilder() {
         OkHttpClient.Builder builder = new OkHttpClient.Builder()
                 .readTimeout(readTimeOut, timeUnit)
@@ -79,13 +89,16 @@ public class ApiService {
                     .cache(new Cache(new File(getDiskCacheDir(AppUtils.getApplicationContext()), "httpCache"), 10 * 1024 * 1024));//缓存,可用不用
         }
         if (DEBUG) {//日志监听
-            builder.addNetworkInterceptor(new LoggingInterceptor(true, logModel));
+            builder.addNetworkInterceptor(new LoggingInterceptor(logModel));
         }
         if (mCertificates != null && mCertificates.length > 0) {//https (自定义证书)
             SSLSocketFactory sslSocketFactory = SSLSocketManger
                     .getSSLSocketFactory(AppUtils.getApplicationContext(), mCertificates);
             if (sslSocketFactory != null)
                 builder.socketFactory(sslSocketFactory);
+        }
+        for (Interceptor interceptor : mInterceptors) {
+            builder.addInterceptor(interceptor);
         }
         return builder;
     }

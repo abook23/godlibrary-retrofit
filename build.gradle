@@ -8,7 +8,7 @@ android {
         minSdkVersion 15
         targetSdkVersion 24
         versionCode 1
-        versionName "1.1.0"
+        versionName "1.1.1"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -27,12 +27,14 @@ dependencies {
 
     compile 'io.reactivex:rxjava:1.2.2'
     compile 'io.reactivex:rxandroid:1.2.1'
-    compile 'com.squareup.retrofit2:retrofit:2.1.0'
-    compile 'com.squareup.retrofit2:adapter-rxjava:2.1.0'
-    compile 'com.squareup.retrofit2:converter-gson:2.1.0'
+    compile 'com.squareup.retrofit2:retrofit:2.3.0'
+    compile 'com.squareup.retrofit2:adapter-rxjava:2.3.0'
+    compile 'com.squareup.retrofit2:converter-gson:2.3.0'
+    compile 'com.squareup.okhttp3:logging-interceptor:3.8.1'
 }
 
 //指令
 //gradlew install
 //gradlew bintrayUpload
 //apply from: "https://raw.githubusercontent.com/xiaopansky/android-library-publish-to-jcenter/master/bintrayUpload.gradle"
+apply from: "bintrayUpload.gradle"
