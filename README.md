@@ -276,7 +276,7 @@ public class LoginActivity extends Activity {
 }
 
 ```
-## 登录超时, Token 过期
+## 登录超时, Token 过期 TokenInterceptor
 ```java
     private void initHttp() {
         L.d("初始化-->initHttp");
