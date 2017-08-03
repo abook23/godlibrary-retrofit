@@ -276,6 +276,39 @@ public class LoginActivity extends Activity {
 }
 
 ```
+## 登录超时, Token 过期
+```java
+    private void initHttp() {
+        L.d("初始化-->initHttp");
+        ApiService.DEBUG = true;
+        //ApiService.logModel = LoggingInterceptor.LogModel.all;
+        FileService.init(getApplicationContext(), ServiceURL.BASE_File_URL);
+        ApiService apiService = ApiService.init(getApplicationContext(), ServiceURL.BASE_URL);
+        //检验登录是否超时 toke是否过期
+        apiService.addInterceptor(new TokenInterceptor<RootBean<UserInfo>>() {
+            @Override
+            protected boolean onAuthenticator(Response response) {
+                //返回true 则执行 onAfresh()
+                return response.code()==401;//401 需要重新登录
+            }
+
+            @Override
+            protected Call<RootBean<UserInfo>> onAfresh() {//重新登录接口
+                String userId = PreferenceUtils.getParam(SpfKey.userId);
+                UserDao userDao = BaseApplication.getDaoSession().getUserDao();
+                User user = userDao.load(userId);
+                return ApiService.create(UserApi.class).loginAfresh(user.getName(), user.getPassword());
+            }
+
+            @Override
+            protected Request onNewRequest(Request OldRequest, RootBean<UserInfo> userInfoRootBean) {
+                //验证登录成功
+                //可以修改再次访问的接口内容,不然 token
+                return null;
+            }
+        });
+    }
+```
 
 # 项目中的 dependencies
 
