@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import retrofit2.http.POST;
+
 /**
  * Created by abook23 on 2016/11/22.
  * Versions 1.0
@@ -43,11 +45,17 @@ public class FileUtils {
     }
 
     public static File saveFile(InputStream inputStream, String parent, String fileName) {
-        File file = new File(parent, fileName);
+        File file = null;
         OutputStream os = null;
         try {
+            file = new File(parent);
+            if (!file.exists())
+                file.mkdirs();//创建文件夹
+            file = new File(parent, fileName);
+            if (!file.exists())
+                file.createNewFile();//创建文件
             os = new FileOutputStream(file);
-            byte[] buff = new byte[1024*2];
+            byte[] buff = new byte[1024 * 2];
             int len;
             while ((len = inputStream.read(buff)) != -1) {
                 os.write(buff, 0, len);

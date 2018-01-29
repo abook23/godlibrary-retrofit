@@ -31,9 +31,14 @@ import rx.schedulers.Schedulers;
 public class DownloadFile {
 
     private Call mCall;
-    private boolean pause;
+    private boolean mPause;
     private boolean cancel;
+    private String mUrl;
     private static final int KEY_SIZE = 0x02;
+
+    public void setCall(Call call) {
+        mCall = call;
+    }
 
     private Handler mHandler = new Handler(Looper.getMainLooper()) {
         @Override
@@ -41,35 +46,24 @@ public class DownloadFile {
             super.handleMessage(msg);
             switch (msg.what) {
                 case KEY_SIZE:
-                    mCall.onSize(msg.arg1, msg.arg2);
+                    if (mCall != null)
+                        mCall.onSize(msg.arg1, msg.arg2);
                     break;
             }
         }
     };
 
-    public DownloadFile(String url, Call call) {
-        mCall = call;
-        if (mCall!=null){
+    public DownloadFile(String url) {
+        mUrl = url;
+    }
+
+    public void start() {
+        if (mCall != null) {
             mCall.onStart();
         }
         final String parent = FileUtils.getDowloadDir(AppUtils.getApplicationContext());
-        final String fileName = url.substring(url.lastIndexOf("/") + 1);
-        FileService.getInit().create(Api.class, new OnDownloadListener() {
-            @Override
-            public void onProgress(long bytesRead, long contentLength, boolean done) {
-                while (pause) {
-                    try {
-                        Thread.sleep(500);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                if (cancel) {
-                    throw new ResponseCodeError("cancel");
-                }
-                mHandler.obtainMessage(KEY_SIZE, (int) bytesRead, (int) contentLength).sendToTarget();
-            }
-        }).download(url)
+        final String fileName = mUrl.substring(mUrl.lastIndexOf("/") + 1);
+        FileService.getInit().create(Api.class, mOnDownloadListener).download(mUrl)
                 .map(new Func1<ResponseBody, File>() {
                     @Override
                     public File call(ResponseBody responseBody) {
@@ -88,7 +82,7 @@ public class DownloadFile {
                     @Override
                     public void onError(Throwable e) {
                         super.onError(e);
-                        if (!cancel&& mCall!=null)
+                        if (!cancel && mCall != null)
                             mCall.onFail(e);
                         String filePath = parent + File.separator + fileName;
                         File file = new File(filePath);
@@ -100,25 +94,25 @@ public class DownloadFile {
     }
 
     public boolean isPause() {
-        return pause;
+        return mPause;
     }
 
     public void pause() {
-        pause = true;
-        if (mCall!=null)
+        mPause = true;
+        if (mCall != null)
             mCall.onPause();
     }
 
     public void resume() {
-        pause = false;
-        if (mCall!=null)
+        mPause = false;
+        if (mCall != null)
             mCall.onResume();
     }
 
     public void cancel() {
         cancel = true;
-        pause = false;
-        if (mCall!=null)
+        mPause = false;
+        if (mCall != null)
             mCall.onCancel();
     }
 
@@ -128,4 +122,21 @@ public class DownloadFile {
         @GET()
         Observable<ResponseBody> download(@Url() String url);
     }
+
+    OnDownloadListener mOnDownloadListener = new OnDownloadListener() {
+        @Override
+        public void onProgress(long bytesRead, long contentLength, boolean done) {
+            while (mPause) {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (cancel) {
+                throw new ResponseCodeError("cancel");
+            }
+            mHandler.obtainMessage(KEY_SIZE, (int) bytesRead, (int) contentLength).sendToTarget();
+        }
+    };
 }

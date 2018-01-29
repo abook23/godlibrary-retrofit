@@ -78,7 +78,7 @@ public class FileService {
      */
     public <T> T create(Class<T> tClass, final OnDownloadListener listener) {
         OkHttpClient.Builder builder = getOkHttpBuilder();
-        builder.addInterceptor(new Interceptor() {
+        builder.addNetworkInterceptor(new Interceptor() {
             @Override
             public Response intercept(Chain chain) throws IOException {
                 //拦截
@@ -119,8 +119,6 @@ public class FileService {
 
     private OkHttpClient.Builder getOkHttpBuilder() {
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
-        if (DEBUG)
-            builder.addNetworkInterceptor(new LoggingInterceptor());
         setTimeOut(builder);
         return builder;
     }
