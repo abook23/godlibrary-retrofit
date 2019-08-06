@@ -1,8 +1,11 @@
 package com.god.retrofit.rxjava;
 
-import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
+
+import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
+import io.reactivex.ObservableTransformer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 
 /**
  * Created by abook23 on 2016/11/18.
@@ -16,11 +19,11 @@ public class RxJavaUtils {
      * 响应在 UI线程
      * observable.compose(RxJavaUtils.defaultSchedulers())
      */
-    public static <T> Observable.Transformer<T, T> defaultSchedulers() {
-        return new Observable.Transformer<T, T>() {
+    public static <T> ObservableTransformer<T, T> defaultSchedulers() {
+        return new ObservableTransformer<T, T>() {
             @Override
-            public Observable<T> call(Observable<T> tObservable) {
-                return tObservable
+            public ObservableSource<T> apply(Observable<T> upstream) {
+                return upstream
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread());
             }

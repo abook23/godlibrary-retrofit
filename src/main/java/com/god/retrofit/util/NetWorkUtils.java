@@ -24,7 +24,7 @@ public class NetWorkUtils {
 
     /**
      * 获取当前网络类型
-     *
+     * <p>
      * 0：未连接   1：WIFI网络   2：Mobile网络    3：ETHERNET网络
      */
     public static int getNetworkType(Context context) {

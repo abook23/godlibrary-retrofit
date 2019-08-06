@@ -3,13 +3,13 @@ package com.god.retrofit.rxjava;
 
 import android.widget.Toast;
 
-import com.god.retrofit.BuildConfig;
 import com.god.retrofit.util.AppUtils;
 
 import java.io.IOException;
 
-import retrofit2.adapter.rxjava.HttpException;
-import rx.Observer;
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
+import retrofit2.HttpException;
 
 /**
  * Created by abook23 on 2016/11/18.
@@ -19,7 +19,12 @@ import rx.Observer;
 public abstract class ObserverBaseWeb<T> implements Observer<T> {
 
     @Override
-    public void onCompleted() {
+    public void onComplete() {
+
+    }
+
+    @Override
+    public void onSubscribe(Disposable d) {
 
     }
 

@@ -14,14 +14,14 @@ import com.god.retrofit.util.FileUtils;
 
 import java.io.File;
 
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
 import okhttp3.ResponseBody;
 import retrofit2.http.GET;
 import retrofit2.http.Streaming;
 import retrofit2.http.Url;
-import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
 
 /**
  * Created by abook23 on 2016/11/25.
@@ -64,11 +64,12 @@ public class DownloadFile {
         final String parent = FileUtils.getDowloadDir(AppUtils.getApplicationContext());
         final String fileName = mUrl.substring(mUrl.lastIndexOf("/") + 1);
         FileService.getInit().create(Api.class, mOnDownloadListener).download(mUrl)
-                .map(new Func1<ResponseBody, File>() {
+                .map(new Function<ResponseBody, File>() {
                     @Override
-                    public File call(ResponseBody responseBody) {
+                    public File apply(ResponseBody responseBody) throws Exception {
                         return FileUtils.saveFile(responseBody.byteStream(), parent, fileName);
                     }
+
                 })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())

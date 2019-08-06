@@ -2,7 +2,6 @@ package com.god.retrofit.initerceptor;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.Map;
 
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
@@ -17,31 +16,46 @@ import retrofit2.Call;
  * 接口过期验证
  */
 
-public abstract class TokenInterceptor<T> implements Interceptor {
+public abstract class ResponseInterceptor<T> implements Interceptor {
     private static final Charset UTF8 = Charset.forName("UTF-8");
 
     @Override
     public Response intercept(final Chain chain) throws IOException {
-        Request request = chain.request();
-
-        Request.Builder newBuilder = request.newBuilder();
-        setRequestBuilder(newBuilder);
-
-        Response response = chain.proceed(newBuilder.build());
-        if (onAuthenticator(response)) {//根据和服务端的约定判断 是否 过期
-            //再次请求
-            Call<T> call = onAfresh();
-            T t = call.execute().body();
-            onNewRequest(request, t);
-            Request.Builder builder = request.newBuilder();
-            setRequestBuilder(builder);
-//            Request newRequest = request.newBuilder().build();
-            response.body().close();
-            return chain.proceed(builder.build());
+        final Request request = chain.request();
+        final Response response = chain.proceed(request);
+        if (onResponse(response, response.code())) {
+            Call<T> call = onRequest();
+            if (call != null) {
+                T t = call.execute().body();
+                Request newRequest = onNewRequest(request, t);
+                if (newRequest == null) {
+                    newRequest = request.newBuilder().build();
+                }
+//              Request newRequest = request.newBuilder().build();
+                response.body().close();
+                return chain.proceed(newRequest);
+            }
         }
         // otherwise just pass the original response on
         return response;
     }
+
+    protected Call<T> onRequest() {
+        return null;
+    }
+
+
+    /**
+     * 重新请求 原来的接口
+     *
+     * @param OldRequest
+     * @param t
+     * @return
+     */
+    protected Request onNewRequest(Request OldRequest, T t) {
+        return null;
+    }
+
 
     public String getBodyStr(Response response) {
         try {
@@ -61,30 +75,12 @@ public abstract class TokenInterceptor<T> implements Interceptor {
         return null;
     }
 
-    protected abstract void setRequestBuilder(Request.Builder newBuilder);
-
     /**
      * 接口验证
      *
      * @param response
      * @return
      */
-    protected abstract boolean onAuthenticator(Response response);
-
-    /**
-     * 验证
-     *
-     * @return
-     */
-    protected abstract Call<T> onAfresh();
-
-    /**
-     * 重新请求 原来的接口
-     *
-     * @param request
-     * @param t
-     * @return
-     */
-    protected abstract void onNewRequest(Request request, T t);
+    protected abstract boolean onResponse(Response response, int httpCode);
 
 }

@@ -19,16 +19,16 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import io.reactivex.Observable;
+import io.reactivex.functions.Function;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import retrofit2.Retrofit;
-import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
-import rx.Observable;
-import rx.functions.Func1;
 
 /**
  * Created by abook23 on 2016/11/22.
@@ -60,7 +60,7 @@ public class FileService {
     private Retrofit.Builder getBuilder() {
         return new Retrofit.Builder()
                 .baseUrl(baseUrl)
-                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create());
     }
 
@@ -147,9 +147,10 @@ public class FileService {
 
     public Observable<File> download(final String url) {
         final String fileName = url.substring(url.lastIndexOf("/") + 1);
-        return com.god.retrofit.FileService.getInit().create(FileApi.class).download(url).map(new Func1<ResponseBody, File>() {
+        return com.god.retrofit.FileService.getInit().create(FileApi.class).download(url).map(new Function<ResponseBody, File>() {
+
             @Override
-            public File call(ResponseBody responseBody) {
+            public File apply(ResponseBody responseBody) throws Exception {
                 return FileUtils.saveFile(responseBody.byteStream(), FileUtils.getDowloadDir(AppUtils.getApplicationContext()), fileName);
             }
         }).compose(RxJavaUtils.<File>defaultSchedulers());

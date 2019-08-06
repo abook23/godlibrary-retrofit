@@ -21,6 +21,7 @@ import okio.BufferedSource;
 public class LoggingInterceptor implements Interceptor {
     private static final Charset UTF8 = Charset.forName("UTF-8");
     private static final String TAG = "okhttp_log";
+    private boolean showLog;
     private LogModel mLogModel;
 
     public enum LogModel {
@@ -31,7 +32,8 @@ public class LoggingInterceptor implements Interceptor {
         this.mLogModel = LogModel.CONCISE;
     }
 
-    public LoggingInterceptor(LogModel logModel) {
+    public LoggingInterceptor(boolean showLog,LogModel logModel) {
+        this.showLog = showLog;
         this.mLogModel = logModel;
     }
 
@@ -54,17 +56,19 @@ public class LoggingInterceptor implements Interceptor {
                 charset = mediaType.charset(UTF8);
             }
             String content = buffer.clone().readString(charset);
-            switch (mLogModel) {
-                case ALL:
-                    Log.i(TAG, String.format(Locale.getDefault(), "Received response for %s in %.1fms%n%s%n%s",
-                            response.request().url(), (t2 - t1) / 1e6d, response.headers(), content));
-                    break;
-                case CONCISE:
-                    Log.i(TAG, String.format(Locale.getDefault(), "%s in %.1fms%n%s",
-                            response.request().url(), (t2 - t1) / 1e6d, content));
-                    break;
-                default:
-                    break;
+            if (showLog) {
+                switch (mLogModel) {
+                    case ALL:
+                        Log.i(TAG, String.format(Locale.getDefault(), "Received response for %s in %.1fms%n%s%n%s",
+                                response.request().url(), (t2 - t1) / 1e6d, response.headers(), content));
+                        break;
+                    case CONCISE:
+                        Log.i(TAG, String.format(Locale.getDefault(), "%s in %.1fms%n%s",
+                                response.request().url(), (t2 - t1) / 1e6d, content));
+                        break;
+                    default:
+                        break;
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();

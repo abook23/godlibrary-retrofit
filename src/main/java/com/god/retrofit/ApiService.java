@@ -1,6 +1,7 @@
 package com.god.retrofit;
 
 import android.content.Context;
+import android.support.annotation.RawRes;
 
 import com.god.retrofit.config.CookieManger;
 import com.god.retrofit.config.SSLSocketManger;
@@ -10,6 +11,7 @@ import com.god.retrofit.util.AppUtils;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -19,7 +21,7 @@ import okhttp3.Cache;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
-import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 import static com.god.retrofit.util.FileUtils.getDiskCacheDir;
@@ -34,52 +36,53 @@ public class ApiService {
 
     public static boolean DEBUG = true;
     public static boolean CACHE = false;
-    public static LoggingInterceptor.LogModel logModel = LoggingInterceptor.LogModel.CONCISE;
-    private List<Interceptor> mInterceptors = new ArrayList<>();
 
     private String baseUrl;
     private Retrofit mRetrofit;
     private int[] mCertificates;
     private static ApiService SERVICE;
-    private long readTimeOut = 60;
-    private int connectTimeOut = 60;
+    private long readTimeOut = 10;
+    private int connectTimeOut = 10;
     private TimeUnit timeUnit = TimeUnit.SECONDS;
+    private List<Interceptor> interceptorList = new ArrayList<>();
 
     public static ApiService init(Context applicationContext, String baseUrl) {
-        AppUtils.initial(applicationContext);
+        AppUtils.initial(applicationContext.getApplicationContext());
         SERVICE = new ApiService();
         SERVICE.baseUrl = baseUrl;
         return SERVICE;
     }
 
-    public static ApiService init(Context applicationContext, String baseUrl, int[] certificates) {
-        AppUtils.initial(applicationContext);
+    public static ApiService init(Context applicationContext, String baseUrl, @RawRes int... cerIds) {
+        AppUtils.initial(applicationContext.getApplicationContext());
         SERVICE = new ApiService();
         SERVICE.baseUrl = baseUrl;
-        SERVICE.mCertificates = certificates;
+        SERVICE.mCertificates = cerIds;
         return SERVICE;
+    }
+
+    public void addInterceptor(Interceptor interceptor) {
+        interceptorList.add(interceptor);
     }
 
     private Retrofit getRetrofit() {
         if (mRetrofit == null) {
-            OkHttpClient okHttpClient = getBuilder().build();
-            mRetrofit = new Retrofit.Builder()
-                    .baseUrl(baseUrl)//"http://172.16.0.22:8099"
-                    .client(okHttpClient)
-                    .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .build();
+            synchronized (ApiService.class) {
+                if (mRetrofit == null) {
+                    OkHttpClient okHttpClient = getBuilder().build();
+                    mRetrofit = new Retrofit.Builder()
+                            .baseUrl(baseUrl)//"http://172.16.0.22:8099"
+                            .client(okHttpClient)
+                            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                            .addConverterFactory(GsonConverterFactory.create())
+                            .build();
+                }
+            }
         }
         return mRetrofit;
     }
 
-    public void addInterceptor(Interceptor... interceptors) {
-        for (Interceptor interceptor : interceptors) {
-            mInterceptors.add(interceptor);
-        }
-    }
-
-    public OkHttpClient.Builder getBuilder() {
+    private OkHttpClient.Builder getBuilder() {
         OkHttpClient.Builder builder = new OkHttpClient.Builder()
                 .readTimeout(readTimeOut, timeUnit)
                 .connectTimeout(connectTimeOut, timeUnit)
@@ -89,15 +92,14 @@ public class ApiService {
                     .cache(new Cache(new File(getDiskCacheDir(AppUtils.getApplicationContext()), "httpCache"), 10 * 1024 * 1024));//缓存,可用不用
         }
         if (DEBUG) {//日志监听
-            builder.addNetworkInterceptor(new LoggingInterceptor(logModel));
+            builder.addNetworkInterceptor(new LoggingInterceptor(DEBUG, LoggingInterceptor.LogModel.CONCISE));
         }
         if (mCertificates != null && mCertificates.length > 0) {//https (自定义证书)
-            SSLSocketFactory sslSocketFactory = SSLSocketManger
-                    .getSSLSocketFactory(AppUtils.getApplicationContext(), mCertificates);
+            SSLSocketFactory sslSocketFactory = SSLSocketManger.getSSLSocketFactory(AppUtils.getApplicationContext(), mCertificates);
             if (sslSocketFactory != null)
                 builder.socketFactory(sslSocketFactory);
         }
-        for (Interceptor interceptor : mInterceptors) {
+        for (Interceptor interceptor : interceptorList) {
             builder.addInterceptor(interceptor);
         }
         return builder;
