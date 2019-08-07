@@ -2,8 +2,6 @@ package com.god.retrofit;
 
 import android.content.Context;
 
-import com.god.retrofit.api.FileApi;
-import com.god.retrofit.initerceptor.LoggingInterceptor;
 import com.god.retrofit.progress.OnDownloadListener;
 import com.god.retrofit.progress.OnUpLoadingListener;
 import com.god.retrofit.progress.ProgressRequestBody;
@@ -131,7 +129,7 @@ public class FileService {
 
     public Observable<ResponseBody> upload(String url, File... files) {
         if (files.length == 1) {
-            return getInit().create(FileApi.class)
+            return getInit().create(Api.class)
                     .uploading(url, MultipartUtils.filesToMultipartBody(files[0]))
                     .compose(RxJavaUtils.<ResponseBody>defaultSchedulers());
         } else {
@@ -140,14 +138,14 @@ public class FileService {
     }
 
     public Observable<ResponseBody> upload(String url, List<File> files) {
-        return getInit().create(FileApi.class)
+        return getInit().create(Api.class)
                 .uploading(url, MultipartUtils.filesToMultipartBody(files))
                 .compose(RxJavaUtils.<ResponseBody>defaultSchedulers());
     }
 
     public Observable<File> download(final String url) {
         final String fileName = url.substring(url.lastIndexOf("/") + 1);
-        return com.god.retrofit.FileService.getInit().create(FileApi.class).download(url).map(new Function<ResponseBody, File>() {
+        return com.god.retrofit.FileService.getInit().create(Api.class).download(url).map(new Function<ResponseBody, File>() {
 
             @Override
             public File apply(ResponseBody responseBody) throws Exception {

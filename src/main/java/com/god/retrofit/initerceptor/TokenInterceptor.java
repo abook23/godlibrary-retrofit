@@ -83,7 +83,6 @@ public abstract class TokenInterceptor<T> implements Interceptor {
      *
      * @param request
      * @param t
-     * @return
      */
     protected abstract void onNewRequest(Request request, T t);
 

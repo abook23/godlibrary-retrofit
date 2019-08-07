@@ -3,6 +3,7 @@ package com.god.retrofit.util;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -36,6 +37,23 @@ public class MultipartUtils {
             if (file != null) {
                 RequestBody requestBody = RequestBody.create(MediaType.parse("image/png"), file);
                 builder.addFormDataPart("file" + i, file.getName(), requestBody);
+            }
+        }
+        builder.setType(MultipartBody.FORM);
+        return builder.build();
+    }
+
+    public static MultipartBody filesToMultipartBody(Map<String, Object> params) {
+        MultipartBody.Builder builder = new MultipartBody.Builder();
+        for (Map.Entry<String, Object> entry : params.entrySet()) {
+            String key = entry.getKey();
+            Object o = entry.getValue();
+            if (o instanceof File) {
+                File file = (File) o;
+                RequestBody requestBody = RequestBody.create(MediaType.parse("image/png"), file);
+                builder.addFormDataPart(key, file.getName(), requestBody);
+            } else {
+                builder.addFormDataPart(key, String.valueOf(o));
             }
         }
         builder.setType(MultipartBody.FORM);

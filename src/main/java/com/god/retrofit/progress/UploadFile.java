@@ -1,10 +1,12 @@
-package com.god.retrofit;
+package com.god.retrofit.progress;
 
 
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 
+import com.god.retrofit.Api;
+import com.god.retrofit.FileService;
 import com.god.retrofit.listener.loading.Call;
 import com.god.retrofit.progress.OnUpLoadingListener;
 import com.god.retrofit.rxjava.ObserverBaseWeb;
@@ -15,15 +17,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
-import okhttp3.MultipartBody;
 import okhttp3.ResponseBody;
-import retrofit2.http.Body;
-import retrofit2.http.POST;
-import retrofit2.http.Url;
 
 /**
  * Created by abook23 on 2016/11/25.
@@ -136,9 +132,4 @@ public class UploadFile {
             }
         }
     };
-
-    private interface Api {
-        @POST()
-        Observable<ResponseBody> uploading(@Url String url, @Body MultipartBody multipartBody);
-    }
 }

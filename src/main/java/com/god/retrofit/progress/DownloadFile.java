@@ -1,10 +1,12 @@
-package com.god.retrofit;
+package com.god.retrofit.progress;
 
 
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 
+import com.god.retrofit.Api;
+import com.god.retrofit.FileService;
 import com.god.retrofit.listener.download.Call;
 import com.god.retrofit.progress.OnDownloadListener;
 import com.god.retrofit.rxjava.ObserverBaseWeb;
@@ -14,14 +16,10 @@ import com.god.retrofit.util.FileUtils;
 
 import java.io.File;
 
-import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.ResponseBody;
-import retrofit2.http.GET;
-import retrofit2.http.Streaming;
-import retrofit2.http.Url;
 
 /**
  * Created by abook23 on 2016/11/25.
@@ -115,13 +113,6 @@ public class DownloadFile {
         mPause = false;
         if (mCall != null)
             mCall.onCancel();
-    }
-
-
-    private interface Api {
-        @Streaming
-        @GET()
-        Observable<ResponseBody> download(@Url() String url);
     }
 
     OnDownloadListener mOnDownloadListener = new OnDownloadListener() {

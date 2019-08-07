@@ -7,24 +7,27 @@ import com.god.retrofit.config.CookieManger;
 import com.god.retrofit.config.SSLSocketManger;
 import com.god.retrofit.initerceptor.CommonInterceptor;
 import com.god.retrofit.initerceptor.LoggingInterceptor;
-import com.god.retrofit.rxjava.ObserverBaseWeb;
+import com.god.retrofit.listener.Call;
 import com.god.retrofit.rxjava.RxJavaUtils;
 import com.god.retrofit.util.AppUtils;
+import com.god.retrofit.util.FileUtils;
+import com.god.retrofit.util.MultipartUtils;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLSocketFactory;
 
 import io.reactivex.Observable;
+import io.reactivex.functions.Function;
 import okhttp3.Cache;
+import okhttp3.FormBody;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
-import retrofit2.Call;
-import retrofit2.Callback;
+import okhttp3.ResponseBody;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -70,7 +73,7 @@ public class ApiService {
         interceptorList.add(interceptor);
     }
 
-    private Retrofit getRetrofit() {
+    private Retrofit retrofit() {
         if (mRetrofit == null) {
             synchronized (ApiService.class) {
                 if (mRetrofit == null) {
@@ -120,13 +123,50 @@ public class ApiService {
         this.timeUnit = timeUnit;
     }
 
+    public static Retrofit getRetrofit() {
+        return SERVICE.retrofit();
+    }
+
     public static <T> T create(Class<T> tClass) {
-        return SERVICE.getRetrofit().create(tClass);
+        return SERVICE.retrofit().create(tClass);
     }
 
-    public static Retrofit retrofit() {
-        return SERVICE.getRetrofit();
+    public static <T> void get(String url, Map<String, Object> params, Call<T> call) {
+        ApiService.create(Api.class)
+                .get(url, params)
+                .compose(RxJavaUtils.<ResponseBody>defaultSchedulers())
+                .subscribe(call);
     }
 
+    public static <T> void post(String url, Map<String, Object> params, Call<T> call) {
+        FormBody.Builder builder = new FormBody.Builder();
+        for (Map.Entry<String, Object> entry : params.entrySet()) {
+            if (entry.getValue() != null)
+                builder.add(entry.getKey(), String.valueOf(entry.getValue()));
+        }
+        ApiService.create(Api.class)
+                .post(url, builder.build())
+                .compose(RxJavaUtils.<ResponseBody>defaultSchedulers())
+                .subscribe(call);
+    }
+
+    public static <T> void upload(String url, Map<String, Object> params, Call<T> call) {
+        ApiService.create(Api.class)
+                .uploading(url, MultipartUtils.filesToMultipartBody(params))
+                .compose(RxJavaUtils.<ResponseBody>defaultSchedulers())
+                .subscribe(call);
+    }
+
+    public Observable<File> download(String url) {
+        final String fileName = url.substring(url.lastIndexOf("/") + 1);
+        return ApiService.create(Api.class)
+                .download(url)
+                .map(new Function<ResponseBody, File>() {
+                    @Override
+                    public File apply(ResponseBody responseBody) throws Exception {
+                        return FileUtils.saveFile(responseBody.byteStream(), FileUtils.getDowloadDir(AppUtils.getApplicationContext()), fileName);
+                    }
+                }).compose(RxJavaUtils.<File>defaultSchedulers());
+    }
 
 }
