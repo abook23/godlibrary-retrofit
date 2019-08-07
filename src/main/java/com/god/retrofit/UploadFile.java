@@ -84,7 +84,7 @@ public class UploadFile {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ObserverBaseWeb<ResponseBody>() {
 
-                    @Override
+                               @Override
                                public void onNext(ResponseBody responseBody) {
                                    mCall.onSuccess(responseBody);
                                }

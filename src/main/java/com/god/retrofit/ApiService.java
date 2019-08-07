@@ -7,6 +7,8 @@ import com.god.retrofit.config.CookieManger;
 import com.god.retrofit.config.SSLSocketManger;
 import com.god.retrofit.initerceptor.CommonInterceptor;
 import com.god.retrofit.initerceptor.LoggingInterceptor;
+import com.god.retrofit.rxjava.ObserverBaseWeb;
+import com.god.retrofit.rxjava.RxJavaUtils;
 import com.god.retrofit.util.AppUtils;
 
 import java.io.File;
@@ -17,9 +19,12 @@ import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLSocketFactory;
 
+import io.reactivex.Observable;
 import okhttp3.Cache;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
+import retrofit2.Call;
+import retrofit2.Callback;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;

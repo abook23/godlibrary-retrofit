@@ -6,7 +6,7 @@ android {
         minSdkVersion rootProject.minSdkVersion
         targetSdkVersion rootProject.targetSdkVersion
         versionCode 12
-        versionName "1.2"
+        versionName "1.2.001"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -22,13 +22,6 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'com.android.support:appcompat-v7:26.1.0'
-//    implementation 'io.reactivex:rxjava:1.2.2'
-//    implementation 'io.reactivex:rxandroid:1.2.1'
-//    implementation 'com.squareup.retrofit2:retrofit:2.3.0'
-//    implementation 'com.squareup.retrofit2:adapter-rxjava:2.3.0'
-//    implementation 'com.squareup.retrofit2:converter-gson:2.3.0'
-
     implementation 'com.squareup.okhttp3:logging-interceptor:3.10.0'
 
     api 'io.reactivex.rxjava2:rxjava:2.1.7'

@@ -6,6 +6,8 @@ import android.widget.Toast;
 import com.god.retrofit.util.AppUtils;
 
 import java.io.IOException;
+import java.net.ConnectException;
+import java.net.SocketTimeoutException;
 
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
@@ -30,24 +32,23 @@ public abstract class ObserverBaseWeb<T> implements Observer<T> {
 
     @Override
     public void onError(Throwable e) {
-        String errorMsg;
+        String error;
         if (e instanceof HttpException) {
             HttpException httpException = (HttpException) e;
-            errorMsg = httpException.code() + httpException.message();
+            error = httpException.code() + httpException.message();
+        } else if (e instanceof ConnectException) {
+            error = "连接异常";
+        } else if (e instanceof SocketTimeoutException) {
+            error = "连接超时";
         } else if (e instanceof IOException) {
-            String msg = e.getMessage();
-            if (msg.startsWith("Failed to connect to")) {
-                errorMsg = "链接服务器失败";
-            } else {
-                errorMsg = "Please check your network status\n" + e.getMessage();
-                e.printStackTrace();
-            }
+            error = "Please check your network status\n" + e.getMessage();
+            e.printStackTrace();
         } else {
-            errorMsg = e.getMessage();
+            error = e.getMessage();
             e.printStackTrace();
         }
         if (AppUtils.getApplicationContext() != null)
-            Toast.makeText(AppUtils.getApplicationContext(), errorMsg, Toast.LENGTH_SHORT).show();
+            Toast.makeText(AppUtils.getApplicationContext(), error, Toast.LENGTH_SHORT).show();
     }
 
 }
