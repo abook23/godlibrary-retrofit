@@ -2,10 +2,12 @@ package com.god.retrofit;
 
 import android.content.Context;
 
+import com.god.retrofit.progress.DownloadFile;
 import com.god.retrofit.progress.OnDownloadListener;
 import com.god.retrofit.progress.OnUpLoadingListener;
 import com.god.retrofit.progress.ProgressRequestBody;
 import com.god.retrofit.progress.ProgressResponseBody;
+import com.god.retrofit.progress.UploadFile;
 import com.god.retrofit.rxjava.RxJavaUtils;
 import com.god.retrofit.util.AppUtils;
 import com.god.retrofit.util.FileUtils;
@@ -38,9 +40,9 @@ public class FileService {
     private String baseUrl;
     private static FileService SERVICE;
     public static boolean DEBUG = true;
-    public static long connectTimeout_SECONDS = 60;
-    public static long readTimeout_SECONDS = 600;
-    public static long writeTimeout_SECONDS = 600;
+    public static long CONNECT_TIMEOUT_SECONDS = 60;
+    public static long READ_TIMEOUT_SECONDS = 600;
+    public static long WRITE_TIMEOUT_SECONDS = 600;
 
     public static FileService init(Context applicationContext, String baseUrl) {
         SERVICE = new FileService();
@@ -122,9 +124,9 @@ public class FileService {
     }
 
     private void setTimeOut(OkHttpClient.Builder builder) {
-        builder.connectTimeout(connectTimeout_SECONDS, TimeUnit.SECONDS);
-        builder.readTimeout(readTimeout_SECONDS, TimeUnit.SECONDS);
-        builder.writeTimeout(writeTimeout_SECONDS, TimeUnit.SECONDS);
+        builder.connectTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        builder.readTimeout(READ_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        builder.writeTimeout(WRITE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
     }
 
     public Observable<ResponseBody> upload(String url, File... files) {
@@ -143,14 +145,27 @@ public class FileService {
                 .compose(RxJavaUtils.<ResponseBody>defaultSchedulers());
     }
 
-    public Observable<File> download(final String url) {
+    public Observable<File> download(String url) {
         final String fileName = url.substring(url.lastIndexOf("/") + 1);
-        return com.god.retrofit.FileService.getInit().create(Api.class).download(url).map(new Function<ResponseBody, File>() {
+        return getInit().create(Api.class).download(url).map(new Function<ResponseBody, File>() {
 
             @Override
             public File apply(ResponseBody responseBody) throws Exception {
                 return FileUtils.saveFile(responseBody.byteStream(), FileUtils.getDowloadDir(AppUtils.getApplicationContext()), fileName);
             }
         }).compose(RxJavaUtils.<File>defaultSchedulers());
+    }
+
+    public static UploadFile upload(String url, File file, com.god.retrofit.listener.loading.Call call) {
+        UploadFile uploadFile = new UploadFile(url, file);
+        uploadFile.setOnListener(call);
+        return uploadFile;
+    }
+
+    public static DownloadFile download(String url, com.god.retrofit.listener.download.Call call) {
+        DownloadFile downloadFile = new DownloadFile(url);
+        downloadFile.setCall(call);
+        downloadFile.start();
+        return downloadFile;
     }
 }

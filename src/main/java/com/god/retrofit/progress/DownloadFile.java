@@ -8,7 +8,6 @@ import android.os.Message;
 import com.god.retrofit.Api;
 import com.god.retrofit.FileService;
 import com.god.retrofit.listener.download.Call;
-import com.god.retrofit.progress.OnDownloadListener;
 import com.god.retrofit.rxjava.ObserverBaseWeb;
 import com.god.retrofit.rxjava.ResponseCodeError;
 import com.god.retrofit.util.AppUtils;
@@ -115,7 +114,7 @@ public class DownloadFile {
             mCall.onCancel();
     }
 
-    OnDownloadListener mOnDownloadListener = new OnDownloadListener() {
+    private OnDownloadListener mOnDownloadListener = new OnDownloadListener() {
         @Override
         public void onProgress(long bytesRead, long contentLength, boolean done) {
             while (mPause) {
