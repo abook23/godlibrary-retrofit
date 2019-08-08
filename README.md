@@ -10,16 +10,19 @@ godlibrary-retrofit
 
 ## 引用
 ```java
-compile 'com.abook23:godlibrary-retrofit:1.1.0'
+compile 'com.abook23:godlibrary-retrofit:2.1'
 ```
 
 ## 初始化
 
 在 Application 中初始化
+ApiService 包含普通的网络请求 和 文件上传下载
+FileService 正对文件操作,文件上传下载 进度监听
 ```java
 ApiService.init(getApplicationContext(), "http://172.16.0.22:8099");//
 FileService.init(getApplicationContext(), "http://172.16.0.200:8080");//文件下载上传 比如 文件服务器 和项目部在同一服务器
 ```
+
 
 ## 网络请求
 完整实例 在后面
@@ -35,57 +38,60 @@ ApiService.create(UserApi.class).userInfo()
                     }
                 });
 ```
-
-## 上传文件（支持多文件上传）
+### 传统模式
+#### post
 ```java
-        //需要在 application 中初始化 FileService
-        //FileService.init(getApplicationContext(),String baseUrl);
-        String path = FileUtils.getDowloadDir(getApplication()) + "/jdk-8u101-windows-x64.exe";
-        MultipartBody multipartBody = MultipartUtils.filesToMultipartBody(new File(path));//
-        FileService.getInit().create(FileApi.class, new OnUpLoadingListener() {
+ApiService.post("url",new HashMap<String, Object>(), new Call<UserInfo>() {
             @Override
-            public void onProgress(long bytesRead, long contentLength, boolean done) {
-                //根据业务要求,是否需要添加下载监听
-                uploadUI(bytesRead, contentLength);
+            public void onSuccess(UserInfo userInfo) {
+
             }
-        }).uploading("groupline/fileUpload/uploadFiles", multipartBody)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new WebObserver<List<UploadMsgBean>>() {
-                    @Override
-                    protected void onSuccess(List<UploadMsgBean> uploadMsgBeen) {
-                        Toast.makeText(context, new Gson().toJson(uploadMsgBeen), Toast.LENGTH_SHORT).show();
-                    }
-                });
+        });
+```
+#### get
+```java
+ApiService.get("url", new HashMap<String, Object>(), new Call<UserInfo>() {
+            @Override
+            public void onSuccess(UserInfo userInfo) {
+
+            }
+        });
+```
+#### upload
+```java
+ ApiService.upload("url", new HashMap<String, Object>(), new Call<UserInfo>() {
+            @Override
+            public void onSuccess(UserInfo userInfo) {
+
+            }
+        });
+````
+#### download
+```java
+ApiService.download("").subscribe(new ObserverBaseWeb<File>() {
+            @Override
+            public void onNext(File file) {
+
+            }
+        });
 ```
 
-## 文件下载（支持大文件下载）
-```java
-
-        String url = "uploadFiles/apk/jdk-8u101-windows-x64.exe";
-        final String fieName = url.substring(url.lastIndexOf("/") + 1);
-        final String parentStr = FileUtils.getDiskCacheDir(getApplicationContext());
-        FileService.getInit().create(FileApi.class, new OnDownloadListener() {
-            @Override
-            public void onProgress(long bytesRead, long contentLength, boolean done) {
-                downloadUI(bytesRead, contentLength);
-            }
-        }).download(url)
-                .map(new Func1<ResponseBody, File>() {
-                    @Override
-                    public File call(ResponseBody responseBody) {
-                        return FileUtils.saveFile(responseBody.byteStream(), parentStr, fieName);
-                    }
-                }).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new WebObserver<File>() {
-                    @Override
-                    protected void onSuccess(File file) {
-                        Toast.makeText(context, file.getPath(), Toast.LENGTH_SHORT).show();
-                    }
-                });
+## FileService（支持多文件上传）
+初始化
 ```
+FileService.init(getApplicationContext(), "http://172.16.0.200:8080")
+```
+```java
+FileService.upload("url",call); //return UploadFile
+FileService.download("url",call);//return DownloadFile
 
+UploadFile uploadFile = new UploadFile(url, params);
+uploadFile.setOnListener(call);
+
+DownloadFile downloadFile = new DownloadFile(url);
+downloadFile.setCall(call);
+downloadFile.start();
+```
 # 可以 暂停 取消
 
 ## 文件上传
@@ -166,8 +172,57 @@ private void downloadFIleJD() {
         });
     }
 ```
+## 高级模式
+### uploading
+```java
+        //需要在 application 中初始化 FileService
+        //FileService.init(getApplicationContext(),String baseUrl);
+        String path = FileUtils.getDowloadDir(getApplication()) + "/jdk-8u101-windows-x64.exe";
+        MultipartBody multipartBody = MultipartUtils.filesToMultipartBody(new File(path));//
+        FileService.getInit().create(Api.class, new OnUpLoadingListener() {
+            @Override
+            public void onProgress(long bytesRead, long contentLength, boolean done) {
+                //根据业务要求,是否需要添加下载监听
+                uploadUI(bytesRead, contentLength);
+            }
+        }).uploading("groupline/fileUpload/uploadFiles", multipartBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new WebObserver<List<UploadMsgBean>>() {
+                    @Override
+                    protected void onSuccess(List<UploadMsgBean> uploadMsgBeen) {
+                        Toast.makeText(context, new Gson().toJson(uploadMsgBeen), Toast.LENGTH_SHORT).show();
+                    }
+                });
+```
+### download
+```java
 
+        String url = "uploadFiles/apk/jdk-8u101-windows-x64.exe";
+        final String fieName = url.substring(url.lastIndexOf("/") + 1);
+        final String parentStr = FileUtils.getDiskCacheDir(getApplicationContext());
+        FileService.getInit().create(FileApi.class, new OnDownloadListener() {
+            @Override
+            public void onProgress(long bytesRead, long contentLength, boolean done) {
+                downloadUI(bytesRead, contentLength);
+            }
+        }).download(url)
+                .map(new Func1<ResponseBody, File>() {
+                    @Override
+                    public File call(ResponseBody responseBody) {
+                        return FileUtils.saveFile(responseBody.byteStream(), parentStr, fieName);
+                    }
+                }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new WebObserver<File>() {
+                    @Override
+                    protected void onSuccess(File file) {
+                        Toast.makeText(context, file.getPath(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+```
 
+# demo
 ## 网络请求 实例
 ```java
 
@@ -314,12 +369,14 @@ public class LoginActivity extends Activity {
 
 ```java
 dependencies {
-    compile 'com.android.support:appcompat-v7:24.2.1'
-    compile 'io.reactivex:rxjava:1.2.2'
-    compile 'io.reactivex:rxandroid:1.2.1'
-    compile 'com.squareup.retrofit2:retrofit:2.1.0'
-    compile 'com.squareup.retrofit2:adapter-rxjava:2.1.0'
-    compile 'com.squareup.retrofit2:converter-gson:2.1.0'
+    api 'io.reactivex.rxjava2:rxjava:2.1.7'
+    api 'io.reactivex.rxjava2:rxandroid:2.0.1'
+
+    api 'com.squareup.retrofit2:retrofit:2.3.0'
+    api 'com.squareup.retrofit2:adapter-rxjava2:2.3.0'
+    api 'com.squareup.retrofit2:converter-gson:2.3.0'
+    api 'com.android.support:support-annotations:28.0.0'
+    api 'com.squareup.okhttp3:logging-interceptor:3.10.0'
 }
 ```
 
