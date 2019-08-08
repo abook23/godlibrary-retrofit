@@ -35,7 +35,7 @@ public abstract class Call<T> extends ObserverBaseWeb<ResponseBody> {
         }
     }
 
-    abstract void onSuccess(T t);
+    public abstract void onSuccess(T t);
 
     private class ParameterizedTypeImpl implements ParameterizedType {
         private final Class raw;

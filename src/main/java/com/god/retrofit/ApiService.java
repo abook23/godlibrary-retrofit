@@ -157,7 +157,7 @@ public class ApiService {
                 .subscribe(call);
     }
 
-    public Observable<File> download(String url) {
+    public static Observable<File> download(String url) {
         final String fileName = url.substring(url.lastIndexOf("/") + 1);
         return ApiService.create(Api.class)
                 .download(url)

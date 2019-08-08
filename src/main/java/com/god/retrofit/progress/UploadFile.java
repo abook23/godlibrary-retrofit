@@ -4,6 +4,7 @@ package com.god.retrofit.progress;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.ArrayMap;
 
 import com.god.retrofit.Api;
 import com.god.retrofit.FileService;
@@ -15,7 +16,9 @@ import com.god.retrofit.util.MultipartUtils;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
@@ -37,20 +40,34 @@ public class UploadFile {
     private static final int KEY_SIZE = 0x02;
 
     public UploadFile(String url, File file) {
-        List<File> files = new ArrayList<>();
-        files.add(file);
-        upload(url, files);
+        Map<String, Object> map = new HashMap<>();
+        map.put(file.getName(), file);
+        upload(url, map);
     }
 
     public UploadFile(String url, List<File> files) {
-        upload(url, files);
+        Map<String, Object> map = new HashMap<>();
+        for (File file : files) {
+            map.put(file.getName(), file);
+        }
+        upload(url, map);
+    }
+
+    /**
+     * from 表单提交
+     *
+     * @param url       地址
+     * @param objectMap 参数和file
+     */
+    public UploadFile(String url, Map<String, Object> objectMap) {
+        upload(url, objectMap);
     }
 
     public void setOnListener(Call call) {
         mCall = call;
     }
 
-    private void upload(String url, List<File> files) {
+    private void upload(String url, Map<String, Object> objectMap) {
         if (mCall != null) {
             mCall.onStart();
             isStart = true;
@@ -75,7 +92,7 @@ public class UploadFile {
                     throw new ResponseCodeError("cancel");
                 }
             }
-        }).uploading(url, MultipartUtils.filesToMultipartBody(files))
+        }).uploading(url, MultipartUtils.filesToMultipartBody(objectMap))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ObserverBaseWeb<ResponseBody>() {

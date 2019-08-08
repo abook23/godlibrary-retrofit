@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
@@ -158,6 +159,11 @@ public class FileService {
 
     public static UploadFile upload(String url, File file, com.god.retrofit.listener.loading.Call call) {
         UploadFile uploadFile = new UploadFile(url, file);
+        uploadFile.setOnListener(call);
+        return uploadFile;
+    }
+    public static UploadFile upload(String url, Map<String,Object> params, com.god.retrofit.listener.loading.Call call) {
+        UploadFile uploadFile = new UploadFile(url, params);
         uploadFile.setOnListener(call);
         return uploadFile;
     }
